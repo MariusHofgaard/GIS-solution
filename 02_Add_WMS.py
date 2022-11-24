@@ -1,7 +1,8 @@
 import ast
 import streamlit as st
 import leafmap.foliumap as leafmap
-
+from csv import writer
+import json
 st.set_page_config(layout="wide")
 
 st.sidebar.title("About")
@@ -14,7 +15,7 @@ st.sidebar.info(
 st.sidebar.title("Contact")
 st.sidebar.info(
     """
-    Enernite
+    [Enernite](https://www.enernite.com)
     """
 )
 
@@ -24,6 +25,12 @@ def get_layers(url):
     options = leafmap.get_wms_layers(url)
     return options
 
+def push_to_storage(url, layers, legend):
+    list = [url, layers, legend]
+    with open('storage.csv', 'a') as f_object:
+        writer_object = writer(f_object)
+        writer_object.writerow(list)
+        f_object.close()
 
 def app():
     st.title("Web Map Service (WMS)")
@@ -37,14 +44,15 @@ def app():
 
     row1_col1, row1_col2 = st.columns([3, 1.3])
     width = 800
-    height = 600
+    height = 800
     layers = None
 
     with row1_col2:
-
-        esa_landcover = "https://services.terrascope.be/wms/v2"
+        vincoli = "http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms"
+        webgis2 = "http://webgis2.regione.sardegna.it/geoserver/ows"
+        
         url = st.text_input(
-            "Enter a WMS URL:", value="https://services.terrascope.be/wms/v2"
+            "Enter a WMS URL:", value="http://webgis2.regione.sardegna.it/geoserver/ows"
         )
 
         kwargs = st.text_input("Enter kwargs as list (, as separator):", value="")
@@ -61,17 +69,7 @@ def app():
 
             print(key)
 
-
-
-
-
         st.write(split_list)
-
-
-
-
-
-
         empty = st.empty()
 
         if url:
@@ -84,15 +82,21 @@ def app():
             add_legend = st.checkbox("Add a legend to the map", value=True)
             legend = ""
 
-            if add_legend:
-                legend_text = st.text_area(
-                    "Enter a legend as a dictionary {label: color}",
-                    value=legend,
-                    height=200,
-                )
+            legend_text = st.text_area(
+                "Enter a legend as a dictionary {label: color}",
+                value=legend,
+                height=200,
+                key="text")
+
+            def clear_text():
+                st.session_state["text"] = ""
+
+            legend = legend_text
+            if st.button("Push to storage"):
+                push_to_storage(url,layers,legend)
 
         with row1_col1:
-            m = leafmap.Map(center=(36.3, 0), zoom=2)
+            m = leafmap.Map(center=(40.3, 9.5), zoom=9)
 
             if layers is not None:
                 for layer in layers:
@@ -101,7 +105,8 @@ def app():
                     st.write(url, layer, kwargs)
 
             if add_legend and legend_text:
-                legend_dict = ast.literal_eval(legend_text)
+                legend_dict = json.loads(legend_text)
+                
                 m.add_legend(legend_dict=legend_dict)
 
             m.to_streamlit(height=height)
