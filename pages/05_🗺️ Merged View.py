@@ -54,6 +54,9 @@ Map.add_tile_layer(
 
 with st.sidebar:
 
+
+    st.write("Here could the active layers and legend be displayed.")
+
     with st.form("MCDA Scoring Weights"):
 
         agree = st.checkbox("Activate")
