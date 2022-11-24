@@ -6,7 +6,6 @@ import geopandas as gpd
 
 import leafmap.foliumap as leafmap
 
-
 # File 
 from os import listdir, makedirs, remove, rmdir
 from os.path import isfile, join, exists
@@ -18,7 +17,6 @@ from branca.colormap import linear
 
 import pickle
 
-
 hide_streamlit_style = """
             <style>
             #MainMenu {visibility: hidden;}
@@ -26,10 +24,6 @@ hide_streamlit_style = """
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
-
-
-
-
 
 Map = leafmap.Map(  zoom=10,
             draw_control=False,
@@ -46,10 +40,8 @@ Map.add_tile_layer(
 
 
 
-
+# Example for adding raster
 # Map.add_raster("/Applications/Enernite/programs/streamlit_app_MCDA/input_layer/EGY_wind-speed_150m.tif",palette="terrain",layer_name = "Wind Speeds 150m")
-# Map.add_raster("/Applications/Enernite/programs/streamlit_app_MCDA/input_layer/EGY_elevation_w_bathymetry.tif",palette="terrain",layer_name = "Elevation",kwargs={"show":False})
-# Map.add_raster("/Applications/Enernite/programs/streamlit_app_MCDA/input_layer/streamlit_app/input_layer/population_data_egypt_2020.tif",layer_name = "Population",kwargs={"show":False})
 
 
 with st.sidebar:
@@ -60,7 +52,7 @@ with st.sidebar:
     with st.form("MCDA Scoring Weights"):
 
         agree = st.checkbox("Activate")
-
+        # This does not run anything fefore "st.form" is submitted.
         st.form_submit_button("Genereate view")
 
 
