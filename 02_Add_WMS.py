@@ -50,35 +50,39 @@ def app():
     with row1_col2:
         vincoli = "http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms"
         webgis2 = "http://webgis2.regione.sardegna.it/geoserver/ows"
+        sitap = "http://sitap.beniculturali.it:8080/geoserver/apar.public/wms"
+        idrogeo = "https://idrogeo.isprambiente.it/geoserver/idrogeo/wms"
 
-        options = st.selectbox(
+        option = st.selectbox(
             "Choose which WMS URL you want to connect to",
-            (vincoli, webgis2)
+            (vincoli, webgis2, sitap, idrogeo)
         )
         
         url = st.text_input(
-            "Or write a new WMS URL:", value="http://webgis2.regione.sardegna.it/geoserver/ows"
+             "Or write a new WMS URL:", value=""
         )
+        if url:
+            option=url
 
-        kwargs = st.text_input("Enter kwargs as list (, as separator):", value="")
-        st.write(kwargs)
+        # kwargs = st.text_input("Enter kwargs as list (, as separator):", value="")
+        # st.write(kwargs)
 
 
-        split_list = kwargs.split(",")
+        # split_list = kwargs.split(",")
 
-        dict_kwargs = {}
-        for i, key in enumerate(split_list):
-            if i%2 == 0:
-                continue
+        # dict_kwargs = {}
+        # for i, key in enumerate(split_list):
+        #     if i%2 == 0:
+        #         continue
             
 
-            print(key)
+        #     print(key)
 
-        st.write(split_list)
+        # st.write(split_list)
         empty = st.empty()
 
-        if url:
-            options = get_layers(url)
+        if option:
+            options = get_layers(option)
 
             default = None
             layers = empty.multiselect(
@@ -98,7 +102,7 @@ def app():
 
             legend = legend_text
             if st.button("Push to storage"):
-                push_to_storage(url,layers,legend)
+                push_to_storage(option,layers,legend)
 
         with row1_col1:
             m = leafmap.Map(center=(40.3, 9.5), zoom=9)
@@ -106,8 +110,8 @@ def app():
             if layers is not None:
                 for layer in layers:
                     m.add_wms_layer(
-                        url, layers=layer, name=layer, attribution=" ", transparent=True, kwargs=kwargs)
-                    st.write(url, layer, kwargs)
+                        option, layers=layer, name=layer, attribution=" ", transparent=True)
+                    st.write(option, layer)
 
             if add_legend and legend_text:
                 legend_dict = ast.literal_eval(legend_text)
