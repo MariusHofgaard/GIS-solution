@@ -3,7 +3,7 @@ import ast
 import streamlit as st
 import leafmap.foliumap as leafmap
 from csv import writer
-import json
+from owslib.wms import WebMapService
 st.set_page_config(layout="wide")
 
 st.sidebar.title("About")
@@ -26,8 +26,8 @@ def get_layers(url):
     options = leafmap.get_wms_layers(url)
     return options
 
-def push_to_storage(url, layers, legend):
-    list = [url, layers, ast.literal_eval(legend)]
+def push_to_storage(url, name, layers, legend, bbox):
+    list = [url, name, layers, legend, bbox]
     with open('storage.csv', 'a') as f_object:
         writer_object = writer(f_object)
         writer_object.writerow(list)
@@ -49,61 +49,59 @@ def app():
     layers = None
 
     with row1_col2:
-        vincoli = "http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms"
-        webgis2 = "http://webgis2.regione.sardegna.it/geoserver/ows"
-        sitap = "http://sitap.beniculturali.it:8080/geoserver/apar.public/wms"
-        idrogeo = "https://idrogeo.isprambiente.it/geoserver/idrogeo/wms"
+        with st.form("My form", clear_on_submit=True):
+            vincoli = "http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms"
+            webgis2 = "http://webgis2.regione.sardegna.it/geoserver/ows"
+            sitap = "http://sitap.beniculturali.it:8080/geoserver/apar.public/wms"
+            idrogeo = "https://idrogeo.isprambiente.it/geoserver/idrogeo/wms"
 
-        option = st.selectbox(
-            "Choose which WMS URL you want to connect to",
-            (vincoli, webgis2, sitap, idrogeo)
-        )
-        
-        url = st.text_input(
-             "Or write a new WMS URL:", value=""
-        )
-        if url:
-            option=url
-
-        # kwargs = st.text_input("Enter kwargs as list (, as separator):", value="")
-        # st.write(kwargs)
-
-
-        # split_list = kwargs.split(",")
-
-        # dict_kwargs = {}
-        # for i, key in enumerate(split_list):
-        #     if i%2 == 0:
-        #         continue
-            
-
-        #     print(key)
-
-        # st.write(split_list)
-        empty = st.empty()
-
-        if option:
-            options = get_layers(option)
-
-            default = None
-            layers = empty.multiselect(
-                "Select WMS layers to add to the map:", options, default=default
+            option = st.selectbox(
+                "Choose which WMS URL you want to connect to",
+                (vincoli, webgis2, sitap, idrogeo)
             )
-            add_legend = st.checkbox("Add a legend to the map", value=True)
-            legend = ""
+            
+            url = st.text_input(
+                "Or write a new WMS URL:", value=""
+            )
+            if url:
+                option=url
+            empty = st.empty()
 
-            legend_text = st.text_area(
-                "Enter a legend as a dictionary {label: color}",
-                value=legend,
-                height=200,
-                key="text")
+            name = st.text_input(
+                "Add a name to this layer", value=""
+            )
 
-            def clear_text():
-                st.session_state["text"] = ""
+            if option:
+                options = get_layers(option)
 
-            legend = legend_text
-            if st.button("Push to storage"):
-                push_to_storage(option,layers,legend)
+                default = None
+                layers = empty.multiselect(
+                    "Select WMS layers to add to the map:", options, default=default
+                )
+                add_legend = st.checkbox("Add a legend to the map", value=True)
+                legend = ""
+
+
+
+                legend_text = st.text_area(
+                    "Enter a legend to this",
+                    value=legend,
+                    height=200,
+                    key="text")
+
+                color = st.color_picker("Pick a color", "#FF0000")
+                st.write("The color is", color)
+
+                wms = WebMapService(option)
+                bbox = []
+                if len(layers)>0:
+                    bbox = wms[layers[0]].boundingBoxWGS84
+
+                legend_dict = {legend_text : color}
+
+                submitted = st.form_submit_button("Submit")
+                if submitted:
+                    push_to_storage(option, name,layers,legend_dict, bbox)
 
         with row1_col1:
             m = leafmap.Map(center=(40.3, 9.5), zoom=9)
@@ -115,7 +113,6 @@ def app():
                     st.write(option, layer)
 
             if add_legend and legend_text:
-                legend_dict = ast.literal_eval(legend_text)
 
                 m.add_legend(legend_dict=legend_dict)
 
