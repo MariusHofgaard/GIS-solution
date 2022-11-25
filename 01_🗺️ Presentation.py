@@ -18,6 +18,9 @@ from branca.colormap import linear
 import pickle
 import csv
 
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
+
 
 hide_streamlit_style = """
             <style>
@@ -51,6 +54,32 @@ else:
         st.experimental_rerun()
 
 
+
+with st.sidebar:
+    
+    st.info("Here the available datalayers and data for the area of interest is displayed.")
+
+    st.write("Here could the active layers and legend be displayed.")
+
+    with st.form("MCDA Scoring Weights"):
+
+        agree = st.checkbox("Activate")
+        # This does not run anything fefore "st.form" is submitted.
+
+        st.header("Data Catalogue")
+
+        st.subheader("User Uploaded data")
+        # Here itterate through User data
+
+        st.write("here comes user uploaded data w. legend")
+
+        st.subheader("Enernite data catalogue")
+        st.write("Here comes enernite data catalogue & WMS.")
+
+
+        submitted_view = st.form_submit_button("Genereate view")
+
+
 def main(): 
     # Here the main part of the streamlit page is handeled
 
@@ -68,8 +97,7 @@ def main():
     all_uploaded_layers = []
     all_user_uploaded_layers = []
 
-
-
+    # HERE CHECKS THE STORAGE WRT BBOX AND SITE 
     with open('storage.csv', mode='r') as csv_file_temp:
         storage = csv.reader(csv_file_temp)
         for file_params in storage:
@@ -77,47 +105,26 @@ def main():
             # Here check the BBOX wrt. the center of the site.
             st.write(file_params)
 
+            for center in site_center:
+                st.write(file_params[4])
 
-    for file_params in storage:
+                try:
+                    polygon = Polygon(file_params[4])
+                    st.write(polygon.contains(center))
 
-        for center in site_center:
-            pass
-
-            # If intersects. break for loop and add to respective list
-        
-        
-    
-
-
-    with st.sidebar:
-        st.write("Here could the active layers and legend be displayed.")
-
-        with st.form("MCDA Scoring Weights"):
-
-            agree = st.checkbox("Activate")
-            # This does not run anything fefore "st.form" is submitted.
-
-            st.header("Data Catalogue")
-
-            st.subheader("User Uploaded data")
-            # Here itterate through User data
-
-            st.write("here comes user uploaded data w. legend")
-
-            st.subheader("Enernite data catalogue")
-            st.write("Here comes enernite data catalogue & WMS.")
+                except Exception as E:
+                    print(E)
+                    pass
 
 
-            submitted = st.form_submit_button("Genereate view")
+                # If intersects. break for loop and add to respective list
+            
+    # HERE CHECKS THE USERSTORAGE WRT BBOX AND SITE 
+
+    if submitted_view:
 
 
-    if submitted:
-
-
-        Map = leafmap.Map(  zoom=10)
-        leafmap.tile
-
-        leafmap.TitilerEndpoint
+        Map = leafmap.Map( zoom=10)
 
         Map.add_tile_layer(
             url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
