@@ -7,6 +7,8 @@ from owslib.wms import WebMapService
 import ipyleaflet
 from shapely.geometry import Polygon
 import shapely
+import tempfile
+import streamlit.components.v1 as components
 
 st.set_page_config(layout="wide")
 
@@ -36,6 +38,13 @@ def push_to_storage(url, layers, legend, bbox):
         writer_object = writer(f_object)
         writer_object.writerow(list)
         f_object.close()
+
+def show_plot(plot):
+    tmp_output_filename = tempfile.NamedTemporaryFile(suffix='.html').name
+    plot.save(tmp_output_filename)
+
+    f = open(tmp_output_filename, "r")
+    components.html(f.read(), height=600, width=600)
 
 def app():
     st.title("Web Map Service (WMS)")
@@ -114,8 +123,8 @@ def app():
                 m.add_legend(legend_dict=legend_dict)
 
             ## Check if we can add mbiles
-            #m.add_layer(ipyleaflet.LocalTileLayer(path="stored_data_catalogue/kSOAjX7OjtoiF8eMR_4w0ATxIWjbk9iMndXjp3ulSdE.mbtiles"))
-
+            m.add_tile_layer(url="../stored_data_catalogue/tiles_test/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
+            #show_plot(m)
             m.to_streamlit(height=height)
 
 
