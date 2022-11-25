@@ -1,2 +1,1 @@
-http://webgis2.regione.sardegna.it/geoserver/ows,['cat:CENTROIDICATASTO'],
-http://webgis2.regione.sardegna.it/geoserver/ows,['cat:FOGLICATASTO'],"{""hei"": ""#ffffff""}"
+http://webgis2.regione.sardegna.it/geoserver/ows,['dbu:USOSUOLO2003'],{'USDO': '#FF0000'}

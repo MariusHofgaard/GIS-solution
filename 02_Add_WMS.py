@@ -26,7 +26,7 @@ def get_layers(url):
     return options
 
 def push_to_storage(url, layers, legend):
-    list = [url, layers, legend]
+    list = [url, layers, ast.literal_eval(legend)]
     with open('storage.csv', 'a') as f_object:
         writer_object = writer(f_object)
         writer_object.writerow(list)
@@ -50,9 +50,14 @@ def app():
     with row1_col2:
         vincoli = "http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms"
         webgis2 = "http://webgis2.regione.sardegna.it/geoserver/ows"
+
+        options = st.selectbox(
+            "Choose which WMS URL you want to connect to",
+            (vincoli, webgis2)
+        )
         
         url = st.text_input(
-            "Enter a WMS URL:", value="http://webgis2.regione.sardegna.it/geoserver/ows"
+            "Or write a new WMS URL:", value="http://webgis2.regione.sardegna.it/geoserver/ows"
         )
 
         kwargs = st.text_input("Enter kwargs as list (, as separator):", value="")
@@ -105,8 +110,8 @@ def app():
                     st.write(url, layer, kwargs)
 
             if add_legend and legend_text:
-                legend_dict = json.loads(legend_text)
-                
+                legend_dict = ast.literal_eval(legend_text)
+
                 m.add_legend(legend_dict=legend_dict)
 
             m.to_streamlit(height=height)
