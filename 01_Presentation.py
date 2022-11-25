@@ -16,6 +16,8 @@ import random
 from branca.colormap import linear
 
 import pickle
+import csv
+
 
 hide_streamlit_style = """
             <style>
@@ -25,98 +27,106 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-Map = leafmap.Map(  zoom=10,
-            draw_control=False,
-            measure_control=False,
-            fullscreen_control=True,
-            attribution_control=True,
+isExist = exists(r"user_data/input_site/site.geojson")
+
+site_ok = True
+if not isExist:  
+    st.subheader("Note: you must upload a site or AOI to ")
+    site_ok = False
+
+    data = st.file_uploader('Upload site data to be analyzed', accept_multiple_files=False, type = "Geojson")
+    st.info("Note: Any file format can be integrated.")
+
+    if data != None:
+        with open(join(f"user_data/input_site/site.geojson"),"wb") as f:
+            # Could also delete existing files.
+            f.write(data.getbuffer())
+        st.experimental_rerun()
+else: 
+    submitted = st.button('Reset and delete current site')
+
+    if submitted:
+        remove(r"user_data/input_site/site.geojson")
+        site_ok = False
+        st.experimental_rerun()
+
+
+
+
+
+
+def main(): 
+    # Here the main part of the streamlit page is handeled
+    site = gpd.read_file("user_data/input_site/site.geojson")
+    site_center = site.centroid 
+
+    st.write(site_center)
+
+
+    # Here the site is handeled, and potentially center point extracted. 
+
+
+    # Here any logic for limiting the available layers should be placed
+
+    with open('storage.csv', mode='r') as csv_file_temp:
+        storage = csv.reader(csv_file_temp)
+        for file_params in storage:
+
+            # Here check the BBOX wrt. the center of the site.
+
+            st.write(file_params)
+
+    
+    all_wms_layers = []
+    all_uploaded_layers = []
+    all_user_uploaded_layers = []
+
+
+
+
+
+    with st.sidebar:
+        st.write("Here could the active layers and legend be displayed.")
+
+        with st.form("MCDA Scoring Weights"):
+
+            agree = st.checkbox("Activate")
+            # This does not run anything fefore "st.form" is submitted.
+
+            st.header("Data Catalogue")
+
+            st.subheader("User Uploaded data")
+            # Here itterate through User data
+
+            st.write("here comes user uploaded data w. legend")
+
+            st.subheader("Enernite data catalogue")
+            st.write("Here comes enernite data catalogue & WMS.")
+
+
+            submitted = st.form_submit_button("Genereate view")
+
+
+    if submitted:
+
+
+        Map = leafmap.Map(  zoom=10)
+
+        Map.add_tile_layer(
+            url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+            name="Google Satellite",
+            attribution="Google",
         )
 
-Map.add_tile_layer(
-    url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-    name="Google Satellite",
-    attribution="Google",
-)
+
+        # Here logic for adding the different layers, WMS and User data to the map should be implemented. 
+
+
+        Map.to_streamlit(height=800)
 
 
 
-# Example for adding raster
-# Map.add_raster("/Applications/Enernite/programs/streamlit_app_MCDA/input_layer/EGY_wind-speed_150m.tif",palette="terrain",layer_name = "Wind Speeds 150m")
 
-
-with st.sidebar:
-
-
-    st.write("Here could the active layers and legend be displayed.")
-
-    with st.form("MCDA Scoring Weights"):
-
-        agree = st.checkbox("Activate")
-        # This does not run anything fefore "st.form" is submitted.
-        st.form_submit_button("Genereate view")
-
-
-if agree:
-    Map.to_streamlit(height=800)
-
-# from ossaudiodev import control_names
-from re import S, sub
-from tkinter import CENTER
-import streamlit as st
-import geopandas as gpd
-
-import leafmap.foliumap as leafmap
-
-# File 
-from os import listdir, makedirs, remove, rmdir
-from os.path import isfile, join, exists
-
-import shapely
-import numpy as np 
-import random
-from branca.colormap import linear
-
-import pickle
-
-hide_streamlit_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
-
-Map = leafmap.Map(  zoom=10,
-            draw_control=False,
-            measure_control=False,
-            fullscreen_control=True,
-            attribution_control=True,
-        )
-
-Map.add_tile_layer(
-    url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-    name="Google Satellite",
-    attribution="Google",
-)
-
-
-
-# Example for adding raster
-# Map.add_raster("/Applications/Enernite/programs/streamlit_app_MCDA/input_layer/EGY_wind-speed_150m.tif",palette="terrain",layer_name = "Wind Speeds 150m")
-
-
-with st.sidebar:
-
-
-    st.write("Here could the active layers and legend be displayed.")
-
-    with st.form("MCDA Scoring Weights"):
-
-        agree = st.checkbox("Activate")
-        # This does not run anything fefore "st.form" is submitted.
-        st.form_submit_button("Genereate view")
-
-
-if agree:
-    Map.to_streamlit(height=800)
-
+if site_ok:
+    print("yes")
+    main() 
