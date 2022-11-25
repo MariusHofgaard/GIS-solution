@@ -51,38 +51,42 @@ else:
         st.experimental_rerun()
 
 
-
-
-
-
 def main(): 
     # Here the main part of the streamlit page is handeled
+
+    # Here the site is handeled, and potentially center point extracted. 
     site = gpd.read_file("user_data/input_site/site.geojson")
     site_center = site.centroid 
 
     st.write(site_center)
 
 
-    # Here the site is handeled, and potentially center point extracted. 
-
 
     # Here any logic for limiting the available layers should be placed
 
-    with open('storage.csv', mode='r') as csv_file_temp:
-        storage = csv.reader(csv_file_temp)
-        for file_params in storage:
-
-            # Here check the BBOX wrt. the center of the site.
-
-            st.write(file_params)
-
-    
     all_wms_layers = []
     all_uploaded_layers = []
     all_user_uploaded_layers = []
 
 
 
+    with open('storage.csv', mode='r') as csv_file_temp:
+        storage = csv.reader(csv_file_temp)
+        for file_params in storage:
+
+            # Here check the BBOX wrt. the center of the site.
+            st.write(file_params)
+
+
+    for file_params in storage:
+
+        for center in site_center:
+            pass
+
+            # If intersects. break for loop and add to respective list
+        
+        
+    
 
 
     with st.sidebar:
