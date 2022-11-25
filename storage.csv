@@ -1,1 +1,6 @@
 http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms,Communi,['topp:geo_comuni'],{'Communi': '#7f1c1c'},"(6.5671706199646, 35.4348754882812, 18.5798320770264, 47.1504249572754)"
+https://idrogeo.isprambiente.it/geoserver/idrogeo/wms,,[],{'': '#ff0000'},[]
+http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms,,['topp:geo_aree_verdi'],{'hogaboga': '#FF0000'},"(6.73463535308838, 35.4350776672363, 18.5619335174561, 47.1102485656738)"
+http://vincoliinrete.beniculturali.it/vir/vir/geoserver/wms,,[],{'': '#FF0000'},[]
+http://sitap.beniculturali.it:8080/geoserver/apar.public/wms,,[],{'': '#FF0000'},[]
+https://idrogeo.isprambiente.it/geoserver/idrogeo/wms,,[],{'Fredrik': '#FF0000'},[]

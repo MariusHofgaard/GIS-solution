@@ -111,6 +111,9 @@ def main():
 
 
         Map = leafmap.Map(  zoom=10)
+        leafmap.tile
+
+        leafmap.TitilerEndpoint
 
         Map.add_tile_layer(
             url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
@@ -118,13 +121,9 @@ def main():
             attribution="Google",
         )
 
-
         # Here logic for adding the different layers, WMS and User data to the map should be implemented. 
 
-
         Map.to_streamlit(height=800)
-
-
 
 
 if site_ok:
