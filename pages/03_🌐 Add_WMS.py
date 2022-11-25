@@ -4,6 +4,10 @@ import streamlit as st
 import leafmap.foliumap as leafmap
 from csv import writer
 from owslib.wms import WebMapService
+import ipyleaflet
+from shapely.geometry import Polygon
+import shapely
+
 st.set_page_config(layout="wide")
 
 st.sidebar.title("About")
@@ -68,7 +72,7 @@ def app():
 
 
         if option:
-            options = get_layers(option)
+            options =  get_layers(option)
 
             default = None
             layers = empty.multiselect(
@@ -88,6 +92,7 @@ def app():
             bbox = []
             if len(layers)>0:
                 bbox = wms[layers[0]].boundingBoxWGS84
+                bbox = shapely.geometry.box(*bbox, ccw=True)
 
             legend_dict = {legend_text : color}
 
@@ -107,6 +112,9 @@ def app():
             if add_legend and legend_text:
 
                 m.add_legend(legend_dict=legend_dict)
+
+            ## Check if we can add mbiles
+            #m.add_layer(ipyleaflet.LocalTileLayer(path="stored_data_catalogue/kSOAjX7OjtoiF8eMR_4w0ATxIWjbk9iMndXjp3ulSdE.mbtiles"))
 
             m.to_streamlit(height=height)
 
