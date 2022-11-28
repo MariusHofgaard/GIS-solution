@@ -33,7 +33,7 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-isExist = exists(r"user_data/input_site/site2.geojson")
+isExist = exists(r"user_data/input_site/site.geojson")
 
 site_ok = True
 if not isExist:  
@@ -57,104 +57,142 @@ else:
         st.experimental_rerun()
 
 
+layers_overview_total = {}
 
-with st.sidebar:
-    
-    st.info("Here the available datalayers and data for the area of interest is displayed.")
-
-    st.write("Here could the active layers and legend be displayed.")
-
-    with st.form("MCDA Scoring Weights"):
-
-        agree = st.checkbox("Activate")
-        # This does not run anything fefore "st.form" is submitted.
-
-        st.header("Data Catalogue")
-
-        st.subheader("User Uploaded data")
-        # Here itterate through User data
-
-        st.write("here comes user uploaded data w. legend")
-
-        st.subheader("Enernite data catalogue")
-        st.write("Here comes enernite data catalogue & WMS.")
-
-
-        submitted_view = st.form_submit_button("Genereate view")
-
-
-def main(): 
-    # Here the main part of the streamlit page is handeled
+if site_ok:
 
     # Here the site is handeled, and potentially center point extracted. 
-    site = gpd.read_file("user_data/input_site/site2.geojson")
+    site = gpd.read_file("user_data/input_site/site.geojson")
     site_center = site.centroid 
 
-    st.write(site_center)
-
-
+    # st.write(site_center)
 
     # Here any logic for limiting the available layers should be placed
 
-    all_wms_layers = []
-    all_uploaded_layers = []
-    all_user_uploaded_layers = []
+
 
     # HERE CHECKS THE STORAGE WRT BBOX AND SITE 
 
 
     files = ["storage.csv", "storage_user_added.csv"]
 
-
     with open('storage.csv', mode='r') as csv_file_temp:
         storage = csv.reader(csv_file_temp)
-        for file_params in storage:
+        for option in storage:
 
             # Here check the BBOX wrt. the center of the site.
-            st.write(file_params)
-            polygon = shapely.wkt.loads(file_params[3])
+            # st.write(file_params)
+            polygon = shapely.wkt.loads(option[3])
 
             for center in site_center:
                 # Converting string to list
                 if polygon.contains(center):
-                    st.write(polygon)
-                    all_wms_layers.append(file_params)
+                    # st.write(polygon)
+
+                    # Adds the WMS to the layers overview total
+                    layers_overview_total[option[1]] = {}
+                    layers_overview_total[option[1]]["option"] = option
+                    layers_overview_total[option[1]]["type"] = "WMS" # Other alternatives == TIFF, GEOJSON, etc.
+                    layers_overview_total[option[1]]["activated"] = False
+
                     break
+
+            
 
             
     # HERE CHECKS THE USERSTORAGE WRT BBOX AND SITE
 
     ##We have wms layers and other uploaded layers, maybe also osm layers
 
+with st.sidebar:
+    # hacky solution for the main() as it does not support sidebar
+    if __name__ == "__main__":
 
-    if submitted_view:
+        st.info("Here the available datalayers and data for the area of interest is displayed.")
+        st.write("Here could the active layers and legend be displayed.")
+
+        with st.form("MapView data"):
 
 
-        Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
+            st.header("Data Catalogue")
+            st.subheader("User Uploaded data")
+            # Here itterate through User data
 
-        Map.add_tile_layer(
-            url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-            name="Google Satellite",
-            attribution="Google",
-        )
+            st.write("here comes user uploaded data w. legend")
 
-        # Here logic for adding the different layers, WMS and User data to the map should be implemented.
 
-        if all_wms_layers is not None:
-            for option in all_wms_layers:
+            st.subheader("Enernite data catalogue")
+
+            if layers_overview_total == {}:
+                st.write("No data found for given AOI.")
+
+            # layers_overview_total could be sorted by category?
+
+            with st.expander("Environmental data"):
+                for layer in layers_overview_total:
+
+                    # Here some folder structure could be added
+
+                    st.write("Add the layer with tag: ", str(layer).strip("']["))
+                    option = layers_overview_total[layer]["option"]
+
+                    
+                    agree_submit_bool = st.checkbox("Activate layer in view", key = option)
+
+                    layers_overview_total[option[1]]["activated"] = agree_submit_bool
+
+                    st.markdown("---")
+
+            with st.expander("Technical data"):
+
+                st.write("TBD")
+
+            with st.expander("Regional Plans / Georeferenced PDFs"):
+
+                st.write("TBD")
+            submitted_view = st.form_submit_button("Genereate view")
+
+
+if not submitted_view:
+    Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
+
+    Map.add_tile_layer(
+    url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+    name="Google Satellite",
+    attribution="Google",
+    )
+
+    Map.to_streamlit(height=800)
+
+
+
+if submitted_view:
+
+    Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
+
+    Map.add_tile_layer(
+        url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+        name="Google Satellite",
+        attribution="Google",
+    )
+
+
+    # Here logic for adding the different layers, WMS and User data to the map should be implemented.
+
+    if layers_overview_total is not None:
+        for layer in layers_overview_total:
+            if layers_overview_total[layer]["activated"]:
+                option = layers_overview_total[layer]["option"]
                 url = option[0]
                 layers = np.array(option[1].strip('][').split(', ')).astype(str)
                 legend_dict = ast.literal_eval(option[2])
                 for layer in layers:
                     layer=layer[1:-1]
-                    st.write(layer)
+                    # st.write(layer)
                     Map.add_wms_layer(
                         url=url, layers=layer, name=layer, attribution="", transparent=True)
                 Map.add_legend(legend_dict=legend_dict)
-         
-        Map.to_streamlit(height=800)
+        
+    Map.to_streamlit(height=800)
 
 
-if site_ok:
-    print("yes")
-    main() 
