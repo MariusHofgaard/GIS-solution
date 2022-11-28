@@ -125,9 +125,9 @@ def app():
                
 
             ## Check if we can add mbiles
-            #tile_layer = folium.raster_layers.TileLayer(url="https://localhost:8501/stored_data_catalogue/tiles_test/{z}/{x}/{y}.png", name="tiles_test", attr="Egeli")
+            #m.add_tile_layer(url="http://{s}localhost:8988/test/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
             #m.add_layer(tile_layer)
-            m.add_tile_layer(url="http://localhost:8080/services/tiles_test/tiles/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
+            m.add_tile_layer(url="http://localhost:8080/services/tiles_test/tiles/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli", kwargs={"tms":"True"})
             #show_plot(m)
             m.to_streamlit(height=height)
 
