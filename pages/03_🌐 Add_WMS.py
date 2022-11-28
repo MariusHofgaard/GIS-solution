@@ -102,7 +102,9 @@ def app():
             bbox = []
             if len(layers)>0:
                 bbox = wms[layers[0]].boundingBoxWGS84
-                bbox = shapely.geometry.box(*bbox[3])
+                st.write(bbox)
+
+                bbox = shapely.geometry.box(*bbox)
 
             legend_dict = {legend_text : color}
 

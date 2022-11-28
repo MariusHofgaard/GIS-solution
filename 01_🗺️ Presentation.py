@@ -133,9 +133,9 @@ with st.sidebar:
 
                     # Here some folder structure could be added
 
-                    st.write("Add the layer with tag: ", str(layer).strip("']["))
-                    option = layers_overview_total[layer]["option"]
 
+                    option = layers_overview_total[layer]["option"]
+                    st.write("Add the layer with labelname: ", str(option[2]).split(":")[0].strip("']{["))
                     
                     agree_submit_bool = st.checkbox("Activate layer in view", key = option)
 
