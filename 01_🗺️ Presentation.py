@@ -20,7 +20,7 @@ import csv
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
-
+import shapely.wkt
 import json
 import ast
 
@@ -112,12 +112,10 @@ def main():
 
             # Here check the BBOX wrt. the center of the site.
             st.write(file_params)
-            file_params[3] = np.array(file_params[3].strip(')(').split(', ')).astype(float)
+            polygon = shapely.wkt.loads(file_params[3])
 
             for center in site_center:
                 # Converting string to list
-
-                polygon = shapely.geometry.box(*file_params[3])
                 if polygon.contains(center):
                     st.write(polygon)
                     all_wms_layers.append(file_params)

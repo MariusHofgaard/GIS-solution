@@ -2,15 +2,14 @@
 import ast
 import streamlit as st
 import leafmap.foliumap as leafmap
-from ipyleaflet import LocalTileLayer
 from csv import writer
 from owslib.wms import WebMapService
-import ipyleaflet
 from shapely.geometry import Polygon
 import shapely
 import tempfile
 import streamlit.components.v1 as components
-from traitlets import Bool
+import folium
+
 
 st.set_page_config(layout="wide")
 
@@ -103,6 +102,7 @@ def app():
             bbox = []
             if len(layers)>0:
                 bbox = wms[layers[0]].boundingBoxWGS84
+                bbox = shapely.geometry.box(*bbox[3])
 
             legend_dict = {legend_text : color}
 
@@ -111,7 +111,7 @@ def app():
                 st.experimental_rerun()
 
         with row1_col1:
-            m = leafmap.Map(center=(40.3, 9.5), zoom=9)
+            m = leafmap.Map(center=(40.3,9.5), zoom=9)
 
             if layers is not None:
                 for layer in layers:
@@ -122,16 +122,12 @@ def app():
             if add_legend and legend_text:
 
                 m.add_legend(legend_dict=legend_dict)
-
-            ## Trying to create a ipyleaflet layer
-            # class CustomLocalLayer(LocalTileLayer):
-            #     tms = Bool(True).tag(sync=True, o=True)
-            # local_layer = CustomLocalLayer(tms=True, path="stored_data_catalogue/tiles_test/{z}/{x}/{y}.png")
-            # m.add_layer(local_layer)
                
 
             ## Check if we can add mbiles
-            m.add_tile_layer(url="https://localhost:8501/stored_data_catalogue/tiles_test/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
+            #tile_layer = folium.raster_layers.TileLayer(url="https://localhost:8501/stored_data_catalogue/tiles_test/{z}/{x}/{y}.png", name="tiles_test", attr="Egeli")
+            #m.add_layer(tile_layer)
+            m.add_tile_layer(url="http://localhost:8080/services/tiles_test/tiles/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
             #show_plot(m)
             m.to_streamlit(height=height)
 
