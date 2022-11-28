@@ -2,6 +2,7 @@
 import ast
 import streamlit as st
 import leafmap.foliumap as leafmap
+from ipyleaflet import LocalTileLayer
 from csv import writer
 from owslib.wms import WebMapService
 import ipyleaflet
@@ -9,6 +10,7 @@ from shapely.geometry import Polygon
 import shapely
 import tempfile
 import streamlit.components.v1 as components
+from traitlets import Bool
 
 st.set_page_config(layout="wide")
 
@@ -101,7 +103,6 @@ def app():
             bbox = []
             if len(layers)>0:
                 bbox = wms[layers[0]].boundingBoxWGS84
-                bbox = shapely.geometry.box(*bbox, ccw=True)
 
             legend_dict = {legend_text : color}
 
@@ -122,8 +123,15 @@ def app():
 
                 m.add_legend(legend_dict=legend_dict)
 
+            ## Trying to create a ipyleaflet layer
+            # class CustomLocalLayer(LocalTileLayer):
+            #     tms = Bool(True).tag(sync=True, o=True)
+            # local_layer = CustomLocalLayer(tms=True, path="stored_data_catalogue/tiles_test/{z}/{x}/{y}.png")
+            # m.add_layer(local_layer)
+               
+
             ## Check if we can add mbiles
-            m.add_tile_layer(url="../stored_data_catalogue/tiles_test/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
+            m.add_tile_layer(url="https://localhost:8501/stored_data_catalogue/tiles_test/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
             #show_plot(m)
             m.to_streamlit(height=height)
 

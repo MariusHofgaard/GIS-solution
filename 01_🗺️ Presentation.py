@@ -21,6 +21,9 @@ import csv
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
+import json
+import ast
+
 
 hide_streamlit_style = """
             <style>
@@ -30,7 +33,7 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-isExist = exists(r"user_data/input_site/site.geojson")
+isExist = exists(r"user_data/input_site/site2.geojson")
 
 site_ok = True
 if not isExist:  
@@ -84,7 +87,7 @@ def main():
     # Here the main part of the streamlit page is handeled
 
     # Here the site is handeled, and potentially center point extracted. 
-    site = gpd.read_file("user_data/input_site/site.geojson")
+    site = gpd.read_file("user_data/input_site/site2.geojson")
     site_center = site.centroid 
 
     st.write(site_center)
@@ -98,33 +101,38 @@ def main():
     all_user_uploaded_layers = []
 
     # HERE CHECKS THE STORAGE WRT BBOX AND SITE 
+
+
+    files = ["storage.csv", "storage_user_added.csv"]
+
+
     with open('storage.csv', mode='r') as csv_file_temp:
         storage = csv.reader(csv_file_temp)
         for file_params in storage:
 
             # Here check the BBOX wrt. the center of the site.
             st.write(file_params)
+            file_params[3] = np.array(file_params[3].strip(')(').split(', ')).astype(float)
 
             for center in site_center:
-                st.write(file_params[4])
+                # Converting string to list
 
-                try:
-                    polygon = Polygon(file_params[4])
-                    st.write(polygon.contains(center))
+                polygon = shapely.geometry.box(*file_params[3])
+                if polygon.contains(center):
+                    st.write(polygon)
+                    all_wms_layers.append(file_params)
+                    break
 
-                except Exception as E:
-                    print(E)
-                    pass
-
-
-                # If intersects. break for loop and add to respective list
             
-    # HERE CHECKS THE USERSTORAGE WRT BBOX AND SITE 
+    # HERE CHECKS THE USERSTORAGE WRT BBOX AND SITE
+
+    ##We have wms layers and other uploaded layers, maybe also osm layers
+
 
     if submitted_view:
 
 
-        Map = leafmap.Map( zoom=10)
+        Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
 
         Map.add_tile_layer(
             url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
@@ -132,8 +140,20 @@ def main():
             attribution="Google",
         )
 
-        # Here logic for adding the different layers, WMS and User data to the map should be implemented. 
+        # Here logic for adding the different layers, WMS and User data to the map should be implemented.
 
+        if all_wms_layers is not None:
+            for option in all_wms_layers:
+                url = option[0]
+                layers = np.array(option[1].strip('][').split(', ')).astype(str)
+                legend_dict = ast.literal_eval(option[2])
+                for layer in layers:
+                    layer=layer[1:-1]
+                    st.write(layer)
+                    Map.add_wms_layer(
+                        url=url, layers=layer, name=layer, attribution="", transparent=True)
+                Map.add_legend(legend_dict=legend_dict)
+         
         Map.to_streamlit(height=800)
 
 
