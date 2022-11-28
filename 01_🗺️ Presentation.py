@@ -154,6 +154,9 @@ with st.sidebar:
 
 
 if not submitted_view:
+
+
+
     Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
 
     Map.add_tile_layer(
@@ -167,8 +170,19 @@ if not submitted_view:
 
 
 if submitted_view:
+    Map = leafmap.Map(zoom=9)
 
-    Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
+
+    if site_ok:
+        
+        site = gpd.read_file("user_data/input_site/site.geojson")
+
+        x,y =float(site.dissolve().centroid.x), float(site.dissolve().centroid.y)
+
+
+        Map = leafmap.Map(center = (x,y),zoom=9)
+
+        Map.add_gdf(site, layer_name="User Uploaded Site")
 
     Map.add_tile_layer(
         url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
