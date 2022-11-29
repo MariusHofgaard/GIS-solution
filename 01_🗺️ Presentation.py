@@ -73,6 +73,23 @@ if site_ok:
 
     # HERE CHECKS THE STORAGE WRT BBOX AND SITE 
 
+    centroid = site.unary_union.centroid
+    lat, lon = centroid.y, centroid.x
+
+    ##Adding some OSM layers:
+
+    osm_tags = [{"tags" : {"power" : "plant"},
+                "layer_name": "Power plants",
+                "style": {"color": "#FF0000"}},
+                {"tags" : {"power" : "line"},
+                "layer_name": "Grid",
+                "style": {"color": "#FFFF00"}},
+                {"tags" : {"power" : "substation"},
+                "layer_name": "Substations",
+                "style": {"color": "#000000"}},
+                {"tags" : {"highway" : True},
+                "layer_name": "Roads",
+                "style": {"color": "#000000"}}]
 
     files = ["storage.csv", "storage_user_added.csv"]
 
@@ -150,6 +167,15 @@ with st.sidebar:
             with st.expander("Regional Plans / Georeferenced PDFs"):
 
                 st.write("TBD")
+
+            with st.expander("OSM data"):
+                for osm in range(len(osm_tags)):
+                    option = osm_tags[osm]["layer_name"]
+                    st.write("Add the layer with labelname: ", option)
+                    
+                    agree_submit_bool = st.checkbox("Activate layer in view", key = option)
+
+                    osm_tags[osm]["activated"] = agree_submit_bool
             submitted_view = st.form_submit_button("Genereate view")
 
 
@@ -206,6 +232,17 @@ if submitted_view:
                     Map.add_wms_layer(
                         url=url, layers=layer, name=layer, attribution="", transparent=True)
                 Map.add_legend(legend_dict=legend_dict)
+
+    for osm in osm_tags:
+        if osm["activated"]:
+            Map.add_osm_from_point(center_point=(lat,lon),
+                                    dist=5000,
+                                    tags=osm["tags"],
+                                    layer_name=osm["layer_name"],
+                                    style=osm["style"])
+    
+    Map.add_gdf(site, layer_name="Site")
+
         
     Map.to_streamlit(height=800)
 
