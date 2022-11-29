@@ -129,8 +129,13 @@ def app():
             ## Check if we can add mbiles
             #m.add_tile_layer(url="http://{s}localhost:8988/test/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
             #m.add_layer(tile_layer)
-            m.add_tile_layer(url="http://localhost:8080/services/tiles_test/tiles/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli", kwargs={"tms":"True"})
+            #m.add_tile_layer(url="http://localhost:8080/services/tiles_test/tiles/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli", kwargs={"tms":"True"})
             #show_plot(m)
+
+            #TTesting to add OSM data instead
+            
+
+
             m.to_streamlit(height=height)
 
 
