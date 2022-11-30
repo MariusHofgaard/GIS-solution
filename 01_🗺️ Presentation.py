@@ -23,6 +23,8 @@ from shapely.geometry.polygon import Polygon
 import shapely.wkt
 import json
 import ast
+import glob
+import os
 
 
 hide_streamlit_style = """
@@ -72,9 +74,6 @@ if site_ok:
 
 
     # HERE CHECKS THE STORAGE WRT BBOX AND SITE 
-
-    centroid = site.unary_union.centroid
-    lat, lon = centroid.y, centroid.x
 
     ##Adding some OSM layers:
 
@@ -131,6 +130,9 @@ def format_func(option):
 def format_func_osm(option):
     return option["layer_name"]
 
+def format_func_user(option):
+    return option.split(".")[0]
+
 with st.sidebar:
     # hacky solution for the main() as it does not support sidebar
     if __name__ == "__main__":
@@ -139,13 +141,16 @@ with st.sidebar:
         st.write("Here could the active layers and legend be displayed.")
 
         with st.form("MapView data"):
-
-
             st.header("Data Catalogue")
             st.subheader("User Uploaded data")
             # Here itterate through User data
 
-            st.write("here comes user uploaded data w. legend")
+            data_names = (file for file in os.listdir("user_data") if os.path.isfile(os.path.join("user_data", file)))
+            user_options = st.multiselect(
+                    "Choose the data layers you want to see",
+                    data_names,
+                    format_func=format_func_user
+            )
 
 
             st.subheader("Enernite data catalogue")
@@ -209,7 +214,7 @@ if not submitted_view:
     attribution="Google",
     )
 
-    Map.to_streamlit(height=800)
+    Map.to_streamlit(height=800, width=800)
 
 
 
@@ -220,13 +225,12 @@ if submitted_view:
     if site_ok:
         
         site = gpd.read_file("user_data/input_site/site.geojson")
-
-        x,y =float(site.dissolve().centroid.x), float(site.dissolve().centroid.y)
-
+        centroid = site.unary_union.centroid
+        y, x = centroid.y, centroid.x
 
         Map = leafmap.Map(center = (x,y),zoom=9)
 
-        Map.add_gdf(site, layer_name="User Uploaded Site")
+        Map.add_gdf(site, layer_name="User Uploaded Site",style={"color": "#0000FF"})
 
     Map.add_tile_layer(
         url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
@@ -253,7 +257,7 @@ if submitted_view:
     if len(osm_options)>0:
         for osm in osm_options:
             try:
-                Map.add_osm_from_point(center_point=(lat,lon),
+                Map.add_osm_from_point(center_point=(y,x),
                                         dist=5000,
                                         tags=osm["tags"],
                                         layer_name=osm["layer_name"],
@@ -262,6 +266,13 @@ if submitted_view:
                 legend_dict[osm["layer_name"]] = osm["style"]["color"]
             except:
                 st.write("Found no elements with tag {} inside an area of 5km radius".format(osm["layer_name"]))
+
+    if len(user_options)>0:
+        for user in user_options:
+            layer_name = user.split(".")[0]
+            Map.add_geojson(in_geojson=os.path.join("user_data", user),
+                            layer_name=layer_name)
+
 
 
     # if layers_overview_total is not None:
@@ -288,9 +299,7 @@ if submitted_view:
     #         legend_dict[osm["layer_name"]] = osm["style"]["color"]
 
     Map.add_legend(legend_dict=legend_dict)
-    Map.add_gdf(site, layer_name="Site", style={"color": "#0000FF"})
 
-        
-    Map.to_streamlit(height=800)
+    Map.to_streamlit(height=800, width=800)
 
 
