@@ -89,7 +89,13 @@ if site_ok:
                 "style": {"color": "#000000"}},
                 {"tags" : {"highway" : True},
                 "layer_name": "Roads",
-                "style": {"color": "#000000"}}]
+                "style": {"color": "#000000"}},
+                {"tags" : {"natural" : "Water"},
+                "layer_name": "Water",
+                "style": {"color": "#0000FF"}},
+                {"tags" : {"landuse": True},
+                "layer_name": "Landuse",
+                "style": {"color": "#00FF4D"}}]
 
     files = ["storage.csv", "storage_user_added.csv"]
 
@@ -112,14 +118,18 @@ if site_ok:
                     layers_overview_total[option[1]]["type"] = "WMS" # Other alternatives == TIFF, GEOJSON, etc.
                     layers_overview_total[option[1]]["activated"] = False
 
-                    break
-
-            
+                    break      
 
             
     # HERE CHECKS THE USERSTORAGE WRT BBOX AND SITE
 
     ##We have wms layers and other uploaded layers, maybe also osm layers
+
+def format_func(option):
+    return str(layers_overview_total[option]["option"][2]).split(":")[0].strip("']{[")
+
+def format_func_osm(option):
+    return option["layer_name"]
 
 with st.sidebar:
     # hacky solution for the main() as it does not support sidebar
@@ -146,19 +156,25 @@ with st.sidebar:
             # layers_overview_total could be sorted by category?
 
             with st.expander("Environmental data"):
-                for layer in layers_overview_total:
+                #Just testing multiselect
+                env_options = st.multiselect(
+                    "Choose the data layers you want to see",
+                    layers_overview_total,
+                    format_func=format_func
+                )
+                # for layer in layers_overview_total:
 
-                    # Here some folder structure could be added
+                #     # Here some folder structure could be added
 
 
-                    option = layers_overview_total[layer]["option"]
-                    st.write("Add the layer with labelname: ", str(option[2]).split(":")[0].strip("']{["))
+                #     option = layers_overview_total[layer]["option"]
+                #     st.write("Add the layer with labelname: ", str(option[2]).split(":")[0].strip("']{["))
                     
-                    agree_submit_bool = st.checkbox("Activate layer in view", key = option)
+                #     agree_submit_bool = st.checkbox("Activate layer in view", key = option)
 
-                    layers_overview_total[option[1]]["activated"] = agree_submit_bool
+                #     layers_overview_total[option[1]]["activated"] = agree_submit_bool
 
-                    st.markdown("---")
+                #     st.markdown("---")
 
             with st.expander("Technical data"):
 
@@ -169,20 +185,22 @@ with st.sidebar:
                 st.write("TBD")
 
             with st.expander("OSM data"):
-                for osm in range(len(osm_tags)):
-                    option = osm_tags[osm]["layer_name"]
-                    st.write("Add the layer with labelname: ", option)
+                osm_options = st.multiselect(
+                    "Choose the data layers you want to see",
+                    osm_tags,
+                    format_func=format_func_osm
+                )
+                # for osm in range(len(osm_tags)):
+                #     option = osm_tags[osm]["layer_name"]
+                #     st.write("Add the layer with labelname: ", option)
                     
-                    agree_submit_bool = st.checkbox("Activate layer in view", key = option)
+                #     agree_submit_bool = st.checkbox("Activate layer in view", key = option)
 
-                    osm_tags[osm]["activated"] = agree_submit_bool
+                #     osm_tags[osm]["activated"] = agree_submit_bool
             submitted_view = st.form_submit_button("Genereate view")
 
 
 if not submitted_view:
-
-
-
     Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
 
     Map.add_tile_layer(
@@ -216,32 +234,61 @@ if submitted_view:
         attribution="Google",
     )
 
-
+    legend_dict={"Site": "#0000FF"}
     # Here logic for adding the different layers, WMS and User data to the map should be implemented.
 
-    if layers_overview_total is not None:
-        for layer in layers_overview_total:
-            if layers_overview_total[layer]["activated"]:
-                option = layers_overview_total[layer]["option"]
-                url = option[0]
-                layers = np.array(option[1].strip('][').split(', ')).astype(str)
-                legend_dict = ast.literal_eval(option[2])
-                for layer in layers:
-                    layer=layer[1:-1]
-                    # st.write(layer)
-                    Map.add_wms_layer(
-                        url=url, layers=layer, name=layer, attribution="", transparent=True)
-                Map.add_legend(legend_dict=legend_dict)
+    #Another approach based on the multiselect:
+    if len(env_options)>0:
+        for layer in env_options:
+            option = layers_overview_total[layer]["option"]
+            url = option[0]
+            layers = np.array(option[1].strip('][').split(', ')).astype(str)
+            dict = ast.literal_eval(option[2])
+            legend_dict.update(dict)
+            for layer in layers:
+                layer=layer[1:-1]
+                Map.add_wms_layer(
+                    url=url, layers=layer, name=layer, attribution="", transparent=True)
 
-    for osm in osm_tags:
-        if osm["activated"]:
-            Map.add_osm_from_point(center_point=(lat,lon),
-                                    dist=5000,
-                                    tags=osm["tags"],
-                                    layer_name=osm["layer_name"],
-                                    style=osm["style"])
+    if len(osm_options)>0:
+        for osm in osm_options:
+            try:
+                Map.add_osm_from_point(center_point=(lat,lon),
+                                        dist=5000,
+                                        tags=osm["tags"],
+                                        layer_name=osm["layer_name"],
+                                        style=osm["style"])
+
+                legend_dict[osm["layer_name"]] = osm["style"]["color"]
+            except:
+                st.write("Found no elements with tag {} inside an area of 5km radius".format(osm["layer_name"]))
+
+
+    # if layers_overview_total is not None:
+    #     for layer in layers_overview_total:
+    #         if layers_overview_total[layer]["activated"]:
+    #             option = layers_overview_total[layer]["option"]
+    #             url = option[0]
+    #             layers = np.array(option[1].strip('][').split(', ')).astype(str)
+    #             dict = ast.literal_eval(option[2])
+    #             legend_dict.update(dict)
+    #             for layer in layers:
+    #                 layer=layer[1:-1]
+    #                 Map.add_wms_layer(
+    #                     url=url, layers=layer, name=layer, attribution="", transparent=True)
     
-    Map.add_gdf(site, layer_name="Site")
+    # for osm in osm_tags:
+    #     if osm["activated"]:
+    #         Map.add_osm_from_point(center_point=(lat,lon),
+    #                                 dist=5000,
+    #                                 tags=osm["tags"],
+    #                                 layer_name=osm["layer_name"],
+    #                                 style=osm["style"])
+
+    #         legend_dict[osm["layer_name"]] = osm["style"]["color"]
+
+    Map.add_legend(legend_dict=legend_dict)
+    Map.add_gdf(site, layer_name="Site", style={"color": "#0000FF"})
 
         
     Map.to_streamlit(height=800)
