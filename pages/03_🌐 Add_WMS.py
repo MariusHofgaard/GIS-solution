@@ -67,10 +67,13 @@ def app():
         webgis2 = "http://webgis2.regione.sardegna.it/geoserver/ows"
         sitap = "http://sitap.beniculturali.it:8080/geoserver/apar.public/wms"
         idrogeo = "https://idrogeo.isprambiente.it/geoserver/idrogeo/wms"
+        agenziaentrate = "https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php"
+        cartografia_lombardia = "https://www.cartografia.servizirl.it/arcgis2/rest/services/agricoltura/agriturismi/MapServer/export"
+
 
         option = st.selectbox(
             "Choose which WMS URL you want to connect to",
-            (vincoli, webgis2, sitap, idrogeo)
+            (vincoli, webgis2, sitap, idrogeo,agenziaentrate,cartografia_lombardia)
         )
         
         url = st.text_input(
@@ -124,15 +127,6 @@ def app():
             if add_legend and legend_text:
 
                 m.add_legend(legend_dict=legend_dict)
-               
-
-            ## Check if we can add mbiles
-            #m.add_tile_layer(url="http://{s}localhost:8988/test/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli")
-            #m.add_layer(tile_layer)
-            #m.add_tile_layer(url="http://localhost:8080/services/tiles_test/tiles/{z}/{x}/{y}.png", name="tiles_test", attribution="Egeli", kwargs={"tms":"True"})
-            #show_plot(m)
-
-            #TTesting to add OSM data instead
             
 
 
