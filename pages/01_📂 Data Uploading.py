@@ -32,16 +32,11 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-
-
-
 data = st.file_uploader('Upload geojson data', accept_multiple_files=False, type = "Geojson")
 
 
 if data != None:
-
-
-    with open(path.join(f"streamlit_app/input_site/{data.name}.geojson"),"wb") as f:
+    with open(path.join(f"user_data/{data.name}"),"wb") as f:
         # Could also delete existing files.
          f.write(data.getbuffer())
 
