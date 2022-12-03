@@ -186,8 +186,9 @@ with st.sidebar:
                 st.write("TBD")
 
             with st.expander("Regional Plans / Georeferenced PDFs"):
+                st.write("**EXAMPLE**")
 
-                st.write("TBD")
+                germany = st.checkbox("Add Wind plan from Germany (EXAMPLE)")
 
             with st.expander("OSM data"):
                 osm_options = st.multiselect(
@@ -203,7 +204,6 @@ with st.sidebar:
 
                 #     osm_tags[osm]["activated"] = agree_submit_bool
             submitted_view = st.form_submit_button("Genereate view")
-
 
 if not submitted_view:
     Map = leafmap.Map(center=(40.3, 9.5), zoom=9)
@@ -237,6 +237,11 @@ if submitted_view:
         name="Google Satellite",
         attribution="Google",
     )
+
+    if germany:
+        Map.add_raster(source="/Applications/Enernite/programs/GIS-solution/gpkg/kSOAjX7OjtoiF8eMR_4w0ATxIWjbk9iMndXjp3ulSdE.gpkg")
+
+
 
     legend_dict={"Site": "#0000FF"}
     # Here logic for adding the different layers, WMS and User data to the map should be implemented.
@@ -302,4 +307,5 @@ if submitted_view:
 
     Map.to_streamlit(height=800, width=800)
 
+    Map.to_html("WMS_presentation_example.html")
 
